@@ -1,0 +1,265 @@
+1. # Sonar
+2.
+3. import random
+4. import sys
+5.
+6. def drawBoard(board):
+7. # Draw the board data structure.
+8.
+9. hline = ' ' # initial space for the numbers down
+the left side of the board
+10. for i in range(1, 6):
+11. hline += (' ' * 9) + str(i)
+12.
+13. # print the numbers across the top
+14. print hline
+15. print ' ' + ('0123456789' * 6)
+16. print
+17.
+18. # print each of the 15 rows
+19. for i in range(15):
+20. # single-digit numbers need to be padded with
+an extra space
+21. if i < 10:
+22. extraSpace = ' '
+23. else:
+24. extraSpace = ''
+25. print '%s%s %s %s' % (extraSpace, i, getRow
+(board, i), i)
+26.
+27. # print the numbers across the bottom
+28. print
+29. print ' ' + ('0123456789' * 6)
+30. print hline
+31.
+32.
+33. def getRow(board, row):
+34. # Return a string from the board data structure at
+a certain row.
+35. boardRow = ''
+36. for i in range(60):
+37. boardRow += board[i][row]
+38. return boardRow
+39.
+40. def getNewBoard():
+41. # Create a new 60x15 board data structure.
+42. board = []
+43. for x in range(60): # the main list is a list of 60
+lists
+44. board.append([])
+45. for y in range(15): # each list in the main
+list has 15 single-character strings
+46. # use different characters for the ocean to
+make it more readable.
+47. if random.randint(0, 1) == 0:
+48. board[x].append('~')
+49. else:
+50. board[x].append('`')
+51. return board
+52.
+53. def getRandomChests(numChests):
+54. # Create a list of chest data structures (two-item
+lists of x, y int coordinates)
+55. chests = []
+56. for i in range(numChests):
+57. chests.append([random.randint(0, 59),
+random.randint(0, 14)])
+58. return chests
+59.
+60. def isValidMove(x, y):
+61. # Return True if the coordinates are on the board,
+otherwise False.
+62. return x >= 0 and x <= 59 and y >= 0 and y <= 14
+63.
+64. def makeMove(board, chests, x, y):
+65. # Change the board data structure with a sonar
+device character. Remove treasure chests
+66. # from the chests list as they are found. Return
+False if this is an invalid move.
+67. # Otherwise, return the string of the result of
+this move.
+68. if not isValidMove(x, y):
+69. return False
+70.
+71. smallestDistance = 100 # any chest will be closer
+than 100.
+72. for cx, cy in chests:
+73. if abs(cx - x) > abs(cy - y):
+74. distance = abs(cx - x)
+75. else:
+76. distance = abs(cy - y)
+77.
+78. if distance < smallestDistance: # we want the
+closest treasure chest.
+79. smallestDistance = distance
+80.
+81. if smallestDistance == 0:
+82. # xy is directly on a treasure chest!
+83. chests.remove([x, y])
+84. return 'You have found a sunken treasure
+chest!'
+85. else:
+86. if smallestDistance < 10:
+87. board[x][y] = str(smallestDistance)
+88. return 'Treasure detected at a distance of
+%s from the sonar device.' % (smallestDistance)
+89. else:
+90. board[x][y] = 'O'
+91. return 'Sonar did not detect anything. All
+treasure chests out of range.'
+92.
+93.
+94. def enterPlayerMove():
+95. # Let the player type in her move. Return a twoitem
+list of int xy coordinates.
+96. print 'Where do you want to drop the next sonar
+device? (0-59 0-14) (or type quit)'
+97. while True:
+98. move = raw_input()
+99. if move.lower() == 'quit':
+100. print 'Thanks for playing!'
+101. sys.exit()
+102.
+103. move = move.split()
+104. if len(move) == 2 and move[0].isdigit() and
+move[1].isdigit() and isValidMove(int(move[0]), int
+(move[1])):
+105. return [int(move[0]), int(move[1])]
+106. print 'Enter a number from 0 to 59, a space,
+then a number from 0 to 14.'
+107.
+108.
+109. def playAgain():
+110. # This function returns True if the player wants to
+play again, otherwise it returns False.
+111. print 'Do you want to play again? (yes or no)'
+112. return raw_input().lower().startswith('y')
+113.
+114.
+115. def showInstructions():
+116. print '''Instructions:
+117. You are the captain of the Simon, a treasure-hunting
+ship. Your current mission
+118. is to find the three sunken treasure chests that are
+lurking in the part of the
+119. ocean you are in and collect them.
+120.
+121. To play, enter the coordinates of the point in the
+ocean you wish to drop a
+122. sonar device. The sonar can find out how far away the
+closest chest is to it.
+123. For example, the d below marks where the device was
+dropped, and the 2's
+124. represent distances of 2 away from the device. The 4's
+represent
+125. distances of 4 away from the device.
+126.
+127. 444444444
+128. 4 4
+129. 4 22222 4
+130. 4 2 2 4
+131. 4 2 d 2 4
+132. 4 2 2 4
+133. 4 22222 4
+134. 4 4
+135. 444444444
+136. Press enter to continue...'''
+137. raw_input()
+138.
+139. print '''For example, here is a treasure chest (the
+c) located a distance of 2 away
+140. from the sonar device (the d):
+141.
+142. 22222
+143. c 2
+144. 2 d 2
+145. 2 2
+146. 22222
+147.
+148. The point where the device was dropped will be marked
+with a 2.
+149.
+150. The treasure chests don't move around. Sonar devices
+can detect treasure
+151. chests up to a distance of 9. If all chests are out of
+range, the point
+152. will be marked with O
+153.
+154. If a device is directly dropped on a treasure chest,
+you have discovered
+155. the location of the chest, and it will be collected.
+The sonar device will
+156. remain there.
+157.
+158. When you collect a chest, all sonar devices will update
+to locate the next
+159. closest sunken treasure chest.
+160. Press enter to continue...'''
+161. raw_input()
+162. print
+163.
+164.
+165. print 'S O N A R !'
+166. print
+167. print 'Would you like to view the instructions?
+(yes/no)'
+168. if raw_input().lower().startswith('y'):
+169. showInstructions()
+170.
+171. while True:
+172. # game setup
+173. sonarDevices = 16
+174. theBoard = getNewBoard()
+175. theChests = getRandomChests(3)
+176. drawBoard(theBoard)
+177. previousMoves = []
+178.
+179. while sonarDevices > 0:
+180. # Start of a turn:
+181.
+182. # sonar device/chest status
+183. if sonarDevices > 1: extraSsonar = 's'
+184. else: extraSsonar = ''
+185. if len(theChests) > 1: extraSchest = 's'
+186. else: extraSchest = ''
+187. print 'You have %s sonar device%s left. %s
+treasure chest%s remaining.' % (sonarDevices,
+extraSsonar, len(theChests), extraSchest)
+188.
+189. x, y = enterPlayerMove()
+190. previousMoves.append([x, y]) # we must track
+all moves so that sonar devices can be updated.
+191.
+192. moveResult = makeMove(theBoard, theChests, x,
+y)
+193. if moveResult == False:
+194. continue
+195. else:
+196. if moveResult == 'You have found a sunken
+treasure chest!':
+197. # update all the sonar devices
+currently on the map.
+198. for x, y in previousMoves:
+199. makeMove(theBoard, theChests, x, y)
+200. drawBoard(theBoard)
+201. print moveResult
+202.
+203. if len(theChests) == 0:
+204. print 'You have found all the sunken
+treasure chests! Congratulations and good game!'
+205. break
+206.
+207. sonarDevices -= 1
+208.
+209. if sonarDevices == 0:
+210. print 'We\'ve run out of sonar devices! Now we
+have to turn the ship around and head'
+211. print 'for home with treasure chests still out
+there! Game over.'
+212. print ' The remaining chests were here:'
+213. for x, y in theChests:
+214. print ' %s, %s' % (x, y)
+215.
+216. if not playAgain():
+217. sys.exit()
+218.
